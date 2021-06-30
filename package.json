@@ -3,7 +3,9 @@
     "build": "npx ts-node src/build.ts"
   },
   "dependencies": {
-    "flexsearch": "^0.7.11"
+    "cheerio": "*",
+    "flexsearch": "^0.7.11",
+    "needle": "^2.6.0"
   },
   "devDependencies": {
     "@types/node": "^15.12.5"
