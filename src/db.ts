@@ -1,8 +1,10 @@
-import { Document, ID, Dict } from 'flexsearch'
+const fs = require('fs')
+import { Document, ID, Dict, DataEntry, Data, Options } from 'flexsearch'
 
 
 export default class DB {
-  data: Document
+  data: Data
+  doc: Document
   options: Dict = {
     tokenize: 'full',
     document: {
@@ -11,34 +13,47 @@ export default class DB {
     }
   }
 
-  constructor (importPath: string = null, options: Dict = null) {
+  constructor (dataImportPath?: string, docImportPath?: string, options?: Options) {
     this.options = options || this.options
-    this.data = importPath ? this.import(importPath) : this.empty(options)
+    this.data = dataImportPath ? this.importData(dataImportPath) : this.emptyData()
+    this.doc = docImportPath ? this.importDoc(docImportPath) : this.emptyDoc(options)
   }
 
-  empty (options: Dict = null): Document {
+  emptyData (): Data {
+    return []
+  }
+
+  importData (path: string): Data {
+    return this.readJSON(path) as Data
+  }
+
+  exportData (path: string) {
+    this.writeJSON(path, this.data)
+  }
+
+  emptyDoc (options?: Options): Document {
     options = options || this.options
+
     return new Document(options)
   }
 
-  import (path: string, options: Dict = null): Document {
+  importDoc (path: string, options?: Options): Document {
     options = options || this.options
-    const db = new Document(options)
+    const db = this.emptyDoc(options)
 
-    const data: Object = this.readJSON(path)
-    for (const [key, value] of Object.entries(data)) {
+    const json: Object = this.readJSON(path)
+    for (const [key, value] of Object.entries(json)) {
       db.import(key, value)
     }
 
     return db
   }
 
-  export (path: string, options: Dict = null) {
+  exportDoc (path: string, options?: Options) {
     options = options || this.options
-
     const exportData: Dict = {}
 
-    this.data.export((key: string, data: any) => {
+    this.doc.export((key: string, data: any) => {
       exportData[key] = data
   
       if (key === 'store') this.writeJSON(path, exportData)
@@ -46,14 +61,22 @@ export default class DB {
   }
 
   readJSON (path: string): Dict {
-    return {}
+    return JSON.parse(fs.readFileSync(path))
   }
 
-  writeJSON (path: string, data: Dict) {}
+  writeJSON (filename: string, data: Dict) {
+    fs.writeFileSync(filename, JSON.stringify(data))
+  }
 
-  add(entries: Dict | Dict[]): void {this.data.add(entries)}
-  append(entries: Dict | Dict[]): void {this.data.append(entries)}
-  update(entries: Dict | Dict[]): void {this.data.update(entries)}
-  remove(objectToRemove: ID | Document): void {this.data.remove(objectToRemove)}
-  search(string?: string, limit?: string[], options?: Dict): Dict {return this.data.search(string, limit, options)}
+  add(entry: DataEntry): void {
+    this.data[entry.id] = entry
+    this.doc.add(entry)
+  }
+
+  remove(id: ID): void {
+    delete this.data[id]
+    this.doc.remove(id)
+  }
+
+  search(string?: string, limit?: string[], options?: Options): Dict {return this.doc.search(string, limit, options)}
 }

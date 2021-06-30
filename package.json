@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "build": "npx ts-node src/generate-japanese-grammar-db.ts"
+    "build": "npx ts-node src/build.ts"
   },
   "dependencies": {
     "flexsearch": "^0.7.11"
