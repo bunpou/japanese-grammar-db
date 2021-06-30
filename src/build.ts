@@ -1,6 +1,6 @@
 const path = require('path')
-var needle = require('needle')
-var cheerio = require('cheerio')
+const needle = require('needle')
+const cheerio = require('cheerio')
 import { DataEntry, Dict, Data } from 'flexsearch'
 
 import DB from './db'
@@ -10,19 +10,20 @@ const dbPath = path.resolve(__dirname, '../build/db.json')
 const docPath = path.resolve(__dirname, '../build/doc.json')
 
 
-const db = new DB()
+async function main () {
+  const db = new DB()
 
-const data = getData()
-data.forEach((entry: DataEntry)  => {
-  db.add(entry)
-})
+  const data = await getData()
+  data.forEach((entry: DataEntry)  => {
+    db.add(entry)
+  })
 
-db.exportData(dbPath)
-db.exportDoc(docPath)
+  db.exportData(dbPath)
+  db.exportDoc(docPath)
+}
 
-
-function getData (): Data {
-  const results: Dict[] = parseImabi().concat(parseTaeKim())
+async function getData (): Promise<Data> {
+  const results: Dict[] = await parse()
 
   let counter = 0
   const data: Data = results.map((result: Dict) => {
@@ -33,16 +34,50 @@ function getData (): Data {
   return data
 }
 
-function parseImabi (): Dict[] {
-  const results: Dict[] = []
+async function parse (): Promise<Dict[]> {
+  return (await parseImabi()).concat(parseTaeKim())
+}
 
-  results.push({
-    title: '- Regular Verbs I - IMABI!',
-    source: 'Imabi',
-    link: 'https://www.imabi.net/regularverbsi.htm'
+function parseImabi (): Promise<Dict[]> {
+  return new Promise ((resolve, reject) => {
+    const url = 'https://www.imabi.net/tableofcontents.htm'
+
+    getPageBody(url)
+      .then((body) => {
+        const results: Dict[] = []
+        const $ = cheerio.load(body)
+
+        $('p a').each(function () {
+          const link = $(this).attr('href')
+          const title = $(this).text()
+
+          if (title.includes('第')) {
+            results.push({
+              link: link,
+              title: title,
+              source: 'Imabi'
+            })
+          }
+        })
+
+        resolve(results)
+      })
+      .catch((error: Error) => reject(error))
   })
+}
 
-  return results
+function getPageBody (url: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    needle(url, function (err: Error, res: any) {
+      if (err) reject(err)
+
+      if (res.statusCode === 200) {
+        resolve(res.body)
+      } else {
+        reject(Error(res.statusCode))
+      }
+    })
+  })
 }
 
 function parseTaeKim (): Dict {
@@ -108,3 +143,5 @@ function getTaeKimBody (): string {
            </li> <!-- ending subcategory -->
   </ul>        </div>`
 }
+
+main()
