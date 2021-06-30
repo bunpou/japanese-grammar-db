@@ -13,12 +13,6 @@ pids
 *.seed
 *.pid.lock
 
-# Bower dependency directory (https://bower.io/)
-bower_components
-
-# node-waf configuration
-.lock-wscript
-
 # Dependency directories
 node_modules/
 
@@ -34,13 +28,6 @@ node_modules/
 # Optional REPL history
 .node_repl_history
 
-# Output of 'npm pack'
-*.tgz
-
-# dotenv environment variables file
-.env
-.env.test
-
 # Stores VSCode versions used for testing VSCode extensions
 .vscode-test
 
@@ -54,6 +41,3 @@ node_modules/
 
 # Local History for Visual Studio Code
 .history/
-
-# Distr
-dist
