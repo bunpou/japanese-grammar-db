@@ -1,6 +1,4 @@
 const path = require('path')
-const needle = require('needle')
-const cheerio = require('cheerio')
 import { DataEntry, Dict, Data } from 'flexsearch'
 
 import DB from './db'
@@ -9,7 +7,7 @@ import ImabiParser from './parsers/imabi'
 import TaeKimParser from './parsers/tae-kim'
 
 
-class DBBuilder {
+export default class DBBuilder {
   private _db: DB = new DB()
   private _dbPath: string
   private _docPath: string
@@ -69,12 +67,18 @@ class DBBuilder {
 }
 
 
-const dbBuilder = new DBBuilder()
+function main () {
+  const dbBuilder = new DBBuilder()
 
-dbBuilder.dbPath = path.resolve(__dirname, '../build/db.json')
-dbBuilder.docPath = path.resolve(__dirname, '../build/doc.json')
+  dbBuilder.dbPath = path.resolve(__dirname, '../build/db.json')
+  dbBuilder.docPath = path.resolve(__dirname, '../build/doc.json')
 
-dbBuilder.addParser(new ImabiParser())
-dbBuilder.addParser(new TaeKimParser())
+  dbBuilder.addParser(new ImabiParser())
+  dbBuilder.addParser(new TaeKimParser())
 
-dbBuilder.build()
+  dbBuilder.build()
+}
+
+if (typeof require !== 'undefined' && require.main === module) {
+  main();
+}
