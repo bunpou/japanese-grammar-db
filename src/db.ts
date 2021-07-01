@@ -24,11 +24,11 @@ export default class DB {
   }
 
   importData (path: string): Data {
-    return this.readJSON(path) as Data
+    return this.read(path) as Data
   }
 
   exportData (path: string) {
-    this.writeJSON(path, this.data)
+    this.write(path, this.data)
   }
 
   emptyDoc (options?: Options): Document {
@@ -41,7 +41,7 @@ export default class DB {
     options = options || this.options
     const db = this.emptyDoc(options)
 
-    const json: Object = this.readJSON(path)
+    const json: Object = this.read(path)
     for (const [key, value] of Object.entries(json)) {
       db.import(key, value)
     }
@@ -56,15 +56,15 @@ export default class DB {
     this.doc.export((key: string, data: any) => {
       exportData[key] = data
   
-      if (key === 'store') this.writeJSON(path, exportData)
+      if (key === 'store') this.write(path, exportData)
     })
   }
 
-  readJSON (path: string): Dict {
+  read (path: string): Dict {
     return JSON.parse(fs.readFileSync(path))
   }
 
-  writeJSON (filename: string, data: Dict) {
+  write (filename: string, data: Dict) {
     fs.writeFileSync(filename, JSON.stringify(data))
   }
 
